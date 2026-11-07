@@ -91,6 +91,7 @@ function initTerminal() {
      - Account Executive MyRepublic: survei ODP, konsultasi broadband`,
 
     certs: `[SERTIFIKASI TERVERIFIKASI]
+  ✓ CCEP (Certified Cybersecurity Educator Professional) - Red Team Leaders (Nov 2026)
   ✓ MTCNA (MikroTik Certified Network Associate) - CitraWeb (Okt 2022)
   ✓ Subnetting Skill Certification (Score 82%) - Cybrary (2016)
   ✓ Uji Kompetensi Komputer MS Office 2016 - Polije (Jun 2023)

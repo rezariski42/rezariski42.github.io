@@ -747,6 +747,46 @@ body {
   line-height: 1.5;
 }
 
+.cred-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.cred-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent-amber);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.cred-link:hover {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--accent-amber);
+  color: var(--accent-amber-light);
+  transform: translateY(-1px);
+}
+
+.cred-link-ext {
+  color: var(--accent-emerald);
+}
+
+.cred-link-ext:hover {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--accent-emerald);
+  color: #34d399;
+}
+
 /* ============================================================
    CV DRAWER DOWNLOADS
    ============================================================ */
