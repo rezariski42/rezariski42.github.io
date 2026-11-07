@@ -726,66 +726,60 @@ body {
   font-size: 0.9rem;
 }
 
-.roller-viewport-container {
+.roller-stage-wrapper {
   position: relative;
   width: 100%;
+  max-width: 1160px;
+  margin: 1.5rem auto 0.5rem;
+  height: 560px;
+  overflow: visible;
+  user-select: none;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-.roller-viewport {
+.roller-3d-stage {
+  position: relative;
   width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  perspective: 1400px;
-  perspective-origin: center center;
-  padding: 3rem 0;
-  cursor: grab;
-}
-
-.roller-viewport::-webkit-scrollbar {
-  display: none;
-}
-
-.roller-viewport.is-dragging {
-  cursor: grabbing;
-  scroll-snap-type: none;
-}
-
-.roller-track {
+  height: 100%;
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
   display: flex;
   align-items: center;
-  gap: 2rem;
-  padding: 0 calc(50% - 190px);
-  transform-style: preserve-3d;
-  width: max-content;
+  justify-content: center;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.roller-3d-stage.is-dragging {
+  cursor: grabbing;
 }
 
 .roller-card {
-  flex: 0 0 380px;
-  width: 380px;
-  max-width: 86vw;
-  scroll-snap-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 350px;
+  max-width: 82vw;
+  margin-top: -240px;
+  margin-left: -175px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 1.25rem;
   box-sizing: border-box;
   transform-origin: center center;
-  transition: transform 0.12s ease-out,
-              opacity 0.15s ease-out,
-              filter 0.15s ease-out,
-              border-color 0.25s ease,
-              box-shadow 0.25s ease;
-  will-change: transform, opacity, filter;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter, z-index;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
   cursor: pointer;
 }
 
 .roller-card.active {
+  border-color: var(--accent-amber);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 28px rgba(245, 158, 11, 0.28);
   cursor: default;
 }
 
@@ -835,40 +829,42 @@ body {
   pointer-events: none;
 }
 
-/* Roller Navigation Arrows */
+/* Roller Navigation Arrows (Pinned & Locked) */
 .roller-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: rgba(17, 23, 35, 0.92);
-  backdrop-filter: blur(8px);
+  background: rgba(11, 15, 23, 0.94);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--border-focus);
-  color: var(--text-main);
+  color: var(--accent-amber);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 35;
-  transition: var(--transition);
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.75);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
 }
 
 .roller-arrow:hover {
   background: var(--accent-amber);
   color: #0b0f17;
   border-color: var(--accent-amber);
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.45);
-  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.55);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .roller-arrow-prev {
-  left: 10px;
+  left: 8px;
 }
 
 .roller-arrow-next {
-  right: 10px;
+  right: 8px;
 }
 
 /* Roller Dots */
@@ -1000,31 +996,28 @@ body {
 }
 
 @media (max-width: 768px) {
-  .roller-viewport {
-    padding: 2rem 0;
-  }
-  .roller-track {
-    gap: 1.25rem;
-    padding: 0 calc(50% - min(43vw, 160px));
+  .roller-stage-wrapper {
+    height: 520px;
   }
   .roller-card {
-    flex: 0 0 320px;
-    width: 320px;
-    max-width: 86vw;
+    width: 290px;
+    max-width: 82vw;
+    margin-left: -145px;
+    margin-top: -220px;
     padding: 1rem;
   }
   .cert-preview-box {
-    height: 165px;
+    height: 155px;
   }
   .roller-arrow {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
   }
   .roller-arrow-prev {
-    left: 2px;
+    left: 4px;
   }
   .roller-arrow-next {
-    right: 2px;
+    right: 4px;
   }
 }
 

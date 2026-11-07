@@ -460,14 +460,18 @@
             <span class="roller-icon">⇄</span> Scroll mouse / geser ke kanan &amp; kiri • Kartu tengah membesar mengikuti rotasi cycle
           </div>
 
-          <div class="roller-viewport-container">
+          <div class="roller-stage-wrapper">
+            <!-- Pinned & Locked Navigation Arrows (Outside 3D stage, permanently locked in place) -->
             <button class="roller-arrow roller-arrow-prev" id="roller-prev" aria-label="Sertifikat Sebelumnya">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
+            <button class="roller-arrow roller-arrow-next" id="roller-next" aria-label="Sertifikat Selanjutnya">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
 
-            <div class="roller-viewport" id="cert-roller-viewport">
-              <div class="roller-track" id="cert-roller-track">
-              <!-- Card 0: CCEP -->
+            <!-- 3D Arc Stage (0° - 180° busur continuous infinite cycle) -->
+            <div class="roller-3d-stage" id="cert-roller-stage">
+              <!-- Card 0: CCEP (Front Center) -->
               <div class="roller-card" data-index="0">
                 <a href="certificates/certified_cybersecurity.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
                   <img src="assets/certificates/certified_cybersecurity.webp" alt="Sertifikat CCEP Red Team Leaders" class="cert-preview-img" loading="lazy">
@@ -489,26 +493,8 @@
                 </div>
               </div>
 
-              <!-- Card 1: MTCNA -->
+              <!-- Card 1: Subnetting -->
               <div class="roller-card" data-index="1">
-                <a href="certificates/sertifikat-mtcna-mikrotik.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
-                  <img src="assets/certificates/sertifikat-mtcna-mikrotik.webp" alt="Sertifikat MTCNA MikroTik" class="cert-preview-img" loading="lazy">
-                  <span class="cert-zoom-pill">🔍 Buka PDF</span>
-                </a>
-                <div class="cred-badge">SERTIFIKASI RESMI</div>
-                <h3 class="cred-title">MTCNA (MikroTik Certified Network Associate)</h3>
-                <div class="cred-issuer">MikroTik Training Partner (CitraWeb) • No: 2210.024</div>
-                <p class="cred-text">Kompetensi teruji dalam RouterOS configuration, TCP/IP stack, bridging, routing static, firewall filters, NAT, wireless distribution, dan QoS bandwidth management.</p>
-                <div class="cred-actions">
-                  <a href="certificates/sertifikat-mtcna-mikrotik.pdf" class="cred-link" target="_blank" download>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Unduh PDF
-                  </a>
-                </div>
-              </div>
-
-              <!-- Card 2: Subnetting -->
-              <div class="roller-card" data-index="2">
                 <a href="certificates/sertifikat-subnetting-cybrary.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
                   <img src="assets/certificates/sertifikat-subnetting-cybrary.webp" alt="Sertifikat Subnetting Cybrary" class="cert-preview-img" loading="lazy">
                   <span class="cert-zoom-pill">🔍 Buka PDF</span>
@@ -525,25 +511,43 @@
                 </div>
               </div>
 
-              <!-- Card 3: MS Office -->
-              <div class="roller-card" data-index="3">
-                <a href="certificates/sertifikat-uji-kompetensi-ms-office.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
-                  <img src="assets/certificates/sertifikat-uji-kompetensi-ms-office.webp" alt="Sertifikat Uji Kompetensi MS Office" class="cert-preview-img" loading="lazy">
+              <!-- Card 2: Pelatihan Jaringan TCP -->
+              <div class="roller-card" data-index="2">
+                <a href="certificates/sertifikat-pelatihan-jaringan-tcp.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
+                  <img src="assets/certificates/sertifikat-pelatihan-jaringan-tcp.webp" alt="Sertifikat Pelatihan Jaringan TCP" class="cert-preview-img" loading="lazy">
                   <span class="cert-zoom-pill">🔍 Buka PDF</span>
                 </a>
-                <div class="cred-badge">SERTIFIKASI RESMI</div>
-                <h3 class="cred-title">Uji Kompetensi Komputer (MS Office 2016)</h3>
-                <div class="cred-issuer">Politeknik Negeri Jember • Jun 2023</div>
-                <p class="cred-text">Sertifikasi uji kecakapan pengoperasian Microsoft Word, Excel (formula data, reporting, pivot), dan PowerPoint profesional untuk dokumentasi dan pelaporan IT.</p>
+                <div class="cred-badge">PELATIHAN TEKNIS</div>
+                <h3 class="cred-title">Pelatihan Jaringan Dasar &amp; Switching</h3>
+                <div class="cred-issuer">Himatek Politeknik Negeri Jember • 2021</div>
+                <p class="cred-text">Pelatihan implementasi switching, trunking VLAN, dynamic routing, dan penyelesaian hambatan bottleneck pada topologi jaringan lokal.</p>
                 <div class="cred-actions">
-                  <a href="certificates/sertifikat-uji-kompetensi-ms-office.pdf" class="cred-link" target="_blank" download>
+                  <a href="certificates/sertifikat-pelatihan-jaringan-tcp.pdf" class="cred-link" target="_blank" download>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Unduh PDF
                   </a>
                 </div>
               </div>
 
-              <!-- Card 4: Juara 3 Robotik -->
+              <!-- Card 3: MTCNA (Di Paling Belakang Cycle / Diametrically Opposite to Card 0) -->
+              <div class="roller-card" data-index="3">
+                <a href="certificates/sertifikat-mtcna-mikrotik.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
+                  <img src="assets/certificates/sertifikat-mtcna-mikrotik.webp" alt="Sertifikat MTCNA MikroTik" class="cert-preview-img" loading="lazy">
+                  <span class="cert-zoom-pill">🔍 Buka PDF</span>
+                </a>
+                <div class="cred-badge">SERTIFIKASI RESMI</div>
+                <h3 class="cred-title">MTCNA (MikroTik Certified Network Associate)</h3>
+                <div class="cred-issuer">MikroTik Training Partner (CitraWeb) • No: 2210.024</div>
+                <p class="cred-text">Kompetensi teruji dalam RouterOS configuration, TCP/IP stack, bridging, routing static, firewall filters, NAT, wireless distribution, dan QoS bandwidth management.</p>
+                <div class="cred-actions">
+                  <a href="certificates/sertifikat-mtcna-mikrotik.pdf" class="cred-link" target="_blank" download>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Unduh PDF
+                  </a>
+                </div>
+              </div>
+
+              <!-- Card 4: Juara 3 Robotik (Di Belakang Cycle) -->
               <div class="roller-card" data-index="4">
                 <a href="certificates/sertifikat-juara-3-nasional-robotik.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
                   <img src="assets/certificates/sertifikat-juara-3-nasional-robotik.webp" alt="Piagam Juara 3 Nasional Robotik Kemendikbud" class="cert-preview-img" loading="lazy">
@@ -561,26 +565,8 @@
                 </div>
               </div>
 
-              <!-- Card 5: Pelatihan Jaringan TCP -->
+              <!-- Card 5: Pelatihan Komputer Dasar -->
               <div class="roller-card" data-index="5">
-                <a href="certificates/sertifikat-pelatihan-jaringan-tcp.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
-                  <img src="assets/certificates/sertifikat-pelatihan-jaringan-tcp.webp" alt="Sertifikat Pelatihan Jaringan TCP" class="cert-preview-img" loading="lazy">
-                  <span class="cert-zoom-pill">🔍 Buka PDF</span>
-                </a>
-                <div class="cred-badge">PELATIHAN TEKNIS</div>
-                <h3 class="cred-title">Pelatihan Jaringan Dasar &amp; Switching</h3>
-                <div class="cred-issuer">Himatek Politeknik Negeri Jember • 2021</div>
-                <p class="cred-text">Pelatihan implementasi switching, trunking VLAN, dynamic routing, dan penyelesaian hambatan bottleneck pada topologi jaringan lokal.</p>
-                <div class="cred-actions">
-                  <a href="certificates/sertifikat-pelatihan-jaringan-tcp.pdf" class="cred-link" target="_blank" download>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Unduh PDF
-                  </a>
-                </div>
-              </div>
-
-              <!-- Card 6: Pelatihan Komputer Dasar -->
-              <div class="roller-card" data-index="6">
                 <a href="certificates/sertifikat-pelatihan-komputer-dasar.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
                   <img src="assets/certificates/sertifikat-pelatihan-komputer-dasar.webp" alt="Sertifikat Pelatihan Komputer Dasar" class="cert-preview-img" loading="lazy">
                   <span class="cert-zoom-pill">🔍 Buka PDF</span>
@@ -596,13 +582,26 @@
                   </a>
                 </div>
               </div>
-            </div>
 
-            <button class="roller-arrow roller-arrow-next" id="roller-next" aria-label="Sertifikat Selanjutnya">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
+              <!-- Card 6: MS Office -->
+              <div class="roller-card" data-index="6">
+                <a href="certificates/sertifikat-uji-kompetensi-ms-office.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
+                  <img src="assets/certificates/sertifikat-uji-kompetensi-ms-office.webp" alt="Sertifikat Uji Kompetensi MS Office" class="cert-preview-img" loading="lazy">
+                  <span class="cert-zoom-pill">🔍 Buka PDF</span>
+                </a>
+                <div class="cred-badge">SERTIFIKASI RESMI</div>
+                <h3 class="cred-title">Uji Kompetensi Komputer (MS Office 2016)</h3>
+                <div class="cred-issuer">Politeknik Negeri Jember • Jun 2023</div>
+                <p class="cred-text">Sertifikasi uji kecakapan pengoperasian Microsoft Word, Excel (formula data, reporting, pivot), dan PowerPoint profesional untuk dokumentasi dan pelaporan IT.</p>
+                <div class="cred-actions">
+                  <a href="certificates/sertifikat-uji-kompetensi-ms-office.pdf" class="cred-link" target="_blank" download>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Unduh PDF
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
 
           <div class="roller-dots" id="roller-dots"></div>
         </div>

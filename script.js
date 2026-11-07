@@ -177,25 +177,30 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// 4. Interactive 3D Certificate Roller / Coverflow Slider (Horizontal Cycle)
+// 4. Interactive 3D Certificate Roller / Coverflow Slider (180° Busur Infinite Arc)
 function initCertificateRoller() {
-  const viewport = document.getElementById('cert-roller-viewport');
-  const track = document.getElementById('cert-roller-track');
+  const stage = document.getElementById('cert-roller-stage');
   const prevBtn = document.getElementById('roller-prev');
   const nextBtn = document.getElementById('roller-next');
   const dotsContainer = document.getElementById('roller-dots');
 
-  if (!viewport || !track) return;
+  if (!stage) return;
 
-  const cards = Array.from(track.querySelectorAll('.roller-card'));
+  const cards = Array.from(stage.querySelectorAll('.roller-card'));
   if (cards.length === 0) return;
 
+  const N = cards.length;
+  const stepDeg = 360 / N; // ~51.4286 deg per card
+
+  let currentAngle = 0;
+  let targetAngle = 0;
   let activeIndex = 0;
-  let isTicking = false;
+  let isAnimating = false;
   let isDragging = false;
   let startX = 0;
-  let scrollStart = 0;
-  let hasDragged = false;
+  let dragStartAngle = 0;
+  let dragMoved = false;
+  let wheelTimeout = null;
 
   // Build dots
   if (dotsContainer) {
@@ -205,7 +210,7 @@ function initCertificateRoller() {
       dot.className = `roller-dot ${i === activeIndex ? 'active' : ''}`;
       dot.setAttribute('aria-label', `Pilih Sertifikat ${i + 1}`);
       dot.addEventListener('click', () => {
-        scrollToCard(i);
+        rotateToCard(i);
       });
       dotsContainer.appendChild(dot);
     });
@@ -213,194 +218,254 @@ function initCertificateRoller() {
 
   const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('.roller-dot')) : [];
 
-  function updateCardTransforms() {
-    isTicking = false;
-    const viewportCenter = viewport.scrollLeft + (viewport.clientWidth / 2);
+  function updateDots(activeIdx) {
+    dots.forEach((dot, idx) => {
+      if (idx === activeIdx) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    });
+  }
+
+  // 3D Semicircular Arc (0° - 180° busur fanned out in space)
+  function apply3DTransforms(rotAngle) {
+    const stageWidth = stage.clientWidth || 1100;
+    const isMobile = stageWidth < 768;
+
+    // Radii of the cylindrical arc
+    const Rx = isMobile ? Math.min(190, stageWidth * 0.44) : Math.min(460, stageWidth * 0.40);
+    const Rz = isMobile ? 130 : 220;
+
+    let minAngleDist = Infinity;
     let closestIndex = 0;
-    let minDistance = Infinity;
 
-    cards.forEach((card, i) => {
-      const cardCenter = card.offsetLeft + (card.clientWidth / 2);
-      const distance = cardCenter - viewportCenter;
-      const absDist = Math.abs(distance);
-      const normalized = distance / (card.clientWidth * 0.9);
+    cards.forEach((card, idx) => {
+      // Relative angular offset from front zenith [0, 360)
+      let rawAngle = (idx * stepDeg - rotAngle) % 360;
+      if (rawAngle < 0) rawAngle += 360;
 
-      if (absDist < minDistance) {
-        minDistance = absDist;
-        closestIndex = i;
+      // Signed angle in [-180, +180]
+      let signedAngle = rawAngle > 180 ? rawAngle - 360 : rawAngle;
+      const absAngle = Math.abs(signedAngle);
+
+      if (absAngle < minAngleDist) {
+        minAngleDist = absAngle;
+        closestIndex = idx;
       }
 
-      // 3D Cycle curve calculation:
-      // Center card is big (scale: 1.12), left/right cards are smaller (scale: ~0.8)
-      const scale = Math.max(0.78, 1.12 - Math.min(Math.abs(normalized) * 0.34, 0.34));
-      
-      // Cycle curvature (curves like a carousel drum facing the viewer)
-      const rotateY = Math.max(-22, Math.min(22, normalized * -18));
-      
-      // Depth perspective (center comes forward, sides push back)
-      const translateZ = Math.max(-80, 50 - Math.abs(normalized) * 90);
-      
-      // Fading for side cards
-      const opacity = Math.max(0.42, 1 - Math.min(Math.abs(normalized) * 0.58, 0.58));
+      const rad = (signedAngle * Math.PI) / 180;
 
-      card.style.transform = `scale(${scale}) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
-      card.style.opacity = opacity;
-      card.style.zIndex = Math.round(50 - Math.min(absDist / 8, 45));
+      // Depth normalization: 1.0 at front (0 deg), 0.0 at back (180 deg)
+      const normDepth = (Math.cos(rad) + 1) / 2;
 
-      if (Math.abs(normalized) < 0.35) {
+      // 3D coordinates
+      const x = Math.sin(rad) * Rx;
+      const z = (Math.cos(rad) - 1) * Rz; // 0px front, -2*Rz at deepest back
+
+      // Arena elevation: back cards are raised slightly so their header/badge peeks out clearly
+      const y = -(1 - normDepth) * (isMobile ? 22 : 36);
+
+      // Tangent rotation: curves smoothly along the 180° busur
+      const rotY = -Math.sin(rad) * (isMobile ? 32 : 40);
+
+      // Dynamic scale: enlarged at front center (1.12), scaled down gracefully at back (0.74)
+      const scale = (isMobile ? 0.76 : 0.74) + normDepth * (isMobile ? 0.30 : 0.38);
+
+      // Opacity: ALL cards behind remain clearly visible (0.60 to 1.0)
+      const opacity = 0.60 + normDepth * 0.40;
+
+      // Z-index: strictly depth based
+      const zIndex = Math.round(10 + normDepth * 80);
+
+      card.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, ${z.toFixed(1)}px) rotateY(${rotY.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+      card.style.opacity = opacity.toFixed(2);
+      card.style.zIndex = zIndex;
+
+      // Active state on front center card
+      if (absAngle < stepDeg * 0.45) {
         card.classList.add('active');
-        card.style.borderColor = 'var(--accent-amber)';
-        card.style.boxShadow = '0 20px 45px rgba(0, 0, 0, 0.8), 0 0 28px rgba(245, 158, 11, 0.28)';
+        card.style.pointerEvents = 'auto';
       } else {
         card.classList.remove('active');
-        card.style.borderColor = 'var(--border-subtle)';
-        card.style.boxShadow = '0 10px 24px rgba(0, 0, 0, 0.45)';
+        card.style.pointerEvents = 'auto'; // allow clicking background cards to bring forward
       }
     });
 
-    if (activeIndex !== closestIndex) {
+    if (closestIndex !== activeIndex) {
       activeIndex = closestIndex;
-      dots.forEach((dot, idx) => {
-        if (idx === activeIndex) {
-          dot.classList.add('active');
-        } else {
-          dot.classList.remove('active');
-        }
-      });
+      updateDots(activeIndex);
     }
   }
 
-  function onScroll() {
-    if (!isTicking) {
-      requestAnimationFrame(updateCardTransforms);
-      isTicking = true;
+  // Animation render loop (smooth spring easing)
+  function render() {
+    const diff = targetAngle - currentAngle;
+    if (Math.abs(diff) > 0.05) {
+      currentAngle += diff * 0.14;
+      apply3DTransforms(currentAngle);
+      requestAnimationFrame(render);
+      isAnimating = true;
+    } else {
+      currentAngle = targetAngle;
+      apply3DTransforms(currentAngle);
+      isAnimating = false;
     }
   }
 
-  viewport.addEventListener('scroll', onScroll, { passive: true });
-
-  function scrollToCard(index, smooth = true) {
-    if (index < 0) index = 0;
-    if (index >= cards.length) index = cards.length - 1;
-    const card = cards[index];
-    if (!card) return;
-    const targetScroll = card.offsetLeft - (viewport.clientWidth / 2) + (card.clientWidth / 2);
-    viewport.scrollTo({
-      left: targetScroll,
-      behavior: smooth ? 'smooth' : 'auto'
-    });
+  function requestRender() {
+    if (!isAnimating) {
+      isAnimating = true;
+      requestAnimationFrame(render);
+    }
   }
 
-  function snapToClosest() {
-    const viewportCenter = viewport.scrollLeft + (viewport.clientWidth / 2);
-    let closestIndex = 0;
-    let minDistance = Infinity;
-
-    cards.forEach((card, i) => {
-      const cardCenter = card.offsetLeft + (card.clientWidth / 2);
-      const dist = Math.abs(cardCenter - viewportCenter);
-      if (dist < minDistance) {
-        minDistance = dist;
-        closestIndex = i;
-      }
-    });
-
-    scrollToCard(closestIndex, true);
+  function rotateByStep(direction) {
+    const currentStep = Math.round(targetAngle / stepDeg);
+    targetAngle = (currentStep + direction) * stepDeg;
+    requestRender();
   }
 
-  // Intercept vertical mouse wheel and translate directly to horizontal cycling
-  viewport.addEventListener('wheel', (e) => {
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      const maxScroll = viewport.scrollWidth - viewport.clientWidth;
-      const canScrollRight = e.deltaY > 0 && viewport.scrollLeft < maxScroll - 4;
-      const canScrollLeft = e.deltaY < 0 && viewport.scrollLeft > 4;
+  function rotateToCard(index) {
+    const currentStep = Math.round(targetAngle / stepDeg);
+    let currentIdx = currentStep % N;
+    if (currentIdx < 0) currentIdx += N;
 
-      if (canScrollRight || canScrollLeft) {
-        e.preventDefault();
-        viewport.scrollLeft += e.deltaY * 1.15;
-      }
+    let stepDiff = (index - currentIdx) % N;
+    if (stepDiff < 0) stepDiff += N;
+    if (stepDiff > N / 2) stepDiff -= N;
+
+    targetAngle = (currentStep + stepDiff) * stepDeg;
+    requestRender();
+  }
+
+  function snapToNearest() {
+    const currentStep = Math.round(targetAngle / stepDeg);
+    targetAngle = currentStep * stepDeg;
+    requestRender();
+  }
+
+  // Mouse Wheel (Direct rotation without scrolling the page)
+  stage.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) > 6 || Math.abs(e.deltaX) > 6) {
+      e.preventDefault();
+      if (wheelTimeout) return;
+      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      const dir = delta > 0 ? 1 : -1;
+      rotateByStep(dir);
+      wheelTimeout = setTimeout(() => {
+        wheelTimeout = null;
+      }, 160);
     }
   }, { passive: false });
 
-  // Mouse Drag to cycle
-  viewport.addEventListener('mousedown', (e) => {
-    if (e.target.closest('a') || e.target.closest('button')) return;
+  // Mouse Drag Interaction
+  stage.addEventListener('mousedown', (e) => {
     isDragging = true;
-    hasDragged = false;
-    startX = e.pageX - viewport.offsetLeft;
-    scrollStart = viewport.scrollLeft;
-    viewport.classList.add('is-dragging');
+    dragMoved = false;
+    startX = e.clientX;
+    dragStartAngle = targetAngle;
+    stage.classList.add('is-dragging');
   });
 
   window.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
-    const x = e.pageX - viewport.offsetLeft;
-    const walk = (x - startX) * 1.35;
-    if (Math.abs(walk) > 4) {
-      hasDragged = true;
+    const deltaX = e.clientX - startX;
+    if (Math.abs(deltaX) > 4) {
+      dragMoved = true;
     }
-    viewport.scrollLeft = scrollStart - walk;
+    const degDelta = (deltaX / (stage.clientWidth || 800)) * 180;
+    targetAngle = dragStartAngle - degDelta;
+    currentAngle = targetAngle;
+    apply3DTransforms(currentAngle);
   });
 
   window.addEventListener('mouseup', () => {
     if (!isDragging) return;
     isDragging = false;
-    viewport.classList.remove('is-dragging');
-    if (hasDragged) {
-      snapToClosest();
+    stage.classList.remove('is-dragging');
+    if (dragMoved) {
+      snapToNearest();
     }
   });
 
-  // Click card to scroll to center
+  // Touch Swipe Interaction
+  stage.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    dragMoved = false;
+    startX = e.touches[0].clientX;
+    dragStartAngle = targetAngle;
+  }, { passive: true });
+
+  stage.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const deltaX = e.touches[0].clientX - startX;
+    if (Math.abs(deltaX) > 4) {
+      dragMoved = true;
+    }
+    const degDelta = (deltaX / window.innerWidth) * 190;
+    targetAngle = dragStartAngle - degDelta;
+    currentAngle = targetAngle;
+    apply3DTransforms(currentAngle);
+  }, { passive: true });
+
+  stage.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    if (dragMoved) {
+      snapToNearest();
+    }
+  });
+
+  // Click on cards
   cards.forEach((card, idx) => {
     card.addEventListener('click', (e) => {
-      if (e.target.closest('a') || e.target.closest('button')) return;
-      if (activeIndex !== idx) {
+      if (dragMoved) {
         e.preventDefault();
-        scrollToCard(idx);
+        return;
       }
+      // If clicked on active center card links, allow normal PDF download/open
+      if (card.classList.contains('active') && e.target.closest('a')) {
+        return;
+      }
+      e.preventDefault();
+      rotateToCard(idx);
     });
   });
 
-  // Prev / Next buttons
+  // Fixed Navigation Arrows
   if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      const target = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
-      scrollToCard(target);
+    prevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      rotateByStep(-1);
     });
   }
 
   if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      const target = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
-      scrollToCard(target);
+    nextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      rotateByStep(1);
     });
   }
 
   // Keyboard navigation
   window.addEventListener('keydown', (e) => {
-    const rect = viewport.getBoundingClientRect();
+    const rect = stage.getBoundingClientRect();
     const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
     if (!isVisible) return;
 
     if (e.key === 'ArrowLeft') {
-      const target = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
-      scrollToCard(target);
+      rotateByStep(-1);
     } else if (e.key === 'ArrowRight') {
-      const target = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
-      scrollToCard(target);
+      rotateByStep(1);
     }
   });
 
-  // Window resize & orientation change
+  // Window resize
   window.addEventListener('resize', () => {
-    scrollToCard(activeIndex, false);
-    updateCardTransforms();
+    apply3DTransforms(currentAngle);
   });
 
-  // Initial center position on load
-  setTimeout(() => {
-    scrollToCard(0, false);
-    updateCardTransforms();
-  }, 100);
+  // Initial draw
+  apply3DTransforms(0);
 }
