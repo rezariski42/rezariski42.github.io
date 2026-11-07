@@ -699,7 +699,314 @@ body {
 }
 
 /* ============================================================
-   CREDENTIALS SECTION
+   CERTIFICATE 3D ROLLER / COVERFLOW SLIDER
+   ============================================================ */
+.roller-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 1.5rem 0 0.5rem;
+  user-select: none;
+}
+
+.roller-instruction {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.roller-instruction .roller-icon {
+  color: var(--accent-amber);
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.roller-viewport {
+  position: relative;
+  width: 100%;
+  height: 540px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.roller-viewport.is-dragging {
+  cursor: grabbing;
+}
+
+.roller-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.roller-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 390px;
+  max-width: 86vw;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  box-sizing: border-box;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.45s ease,
+              border-color 0.3s ease,
+              box-shadow 0.45s ease,
+              filter 0.45s ease;
+  will-change: transform, opacity, filter;
+}
+
+.roller-card.active {
+  cursor: default;
+}
+
+/* Preview Image in Roller Card */
+.cert-preview-box {
+  width: 100%;
+  height: 190px;
+  background: #080b12;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 0.9rem;
+  position: relative;
+  text-decoration: none;
+}
+
+.cert-preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  display: block;
+}
+
+.cert-preview-box:hover .cert-preview-img {
+  transform: scale(1.04);
+}
+
+.cert-zoom-pill {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(10, 13, 20, 0.88);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent-amber);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+
+/* Roller Navigation Arrows */
+.roller-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(17, 23, 35, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-focus);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 35;
+  transition: var(--transition);
+}
+
+.roller-arrow:hover {
+  background: var(--accent-amber);
+  color: #0b0f17;
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.45);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.roller-arrow-prev {
+  left: 10px;
+}
+
+.roller-arrow-next {
+  right: 10px;
+}
+
+/* Roller Dots */
+.roller-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.roller-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-subtle);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.roller-dot:hover {
+  background: var(--text-dim);
+}
+
+.roller-dot.active {
+  background: var(--accent-amber);
+  width: 26px;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+/* ============================================================
+   EDUCATION SECTION
+   ============================================================ */
+.education-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.edu-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.85rem;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.edu-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--accent-amber);
+  opacity: 0.85;
+}
+
+.edu-card:hover {
+  border-color: var(--border-focus);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+}
+
+.edu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.edu-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent-amber);
+  letter-spacing: 0.5px;
+}
+
+.edu-year {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.edu-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+}
+
+.edu-institution {
+  font-size: 0.88rem;
+  font-family: var(--font-mono);
+  color: var(--accent-emerald);
+  margin-bottom: 0.85rem;
+}
+
+.edu-text {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.edu-activities {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.edu-tag {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+@media (max-width: 768px) {
+  .roller-viewport {
+    height: 520px;
+  }
+  .roller-card {
+    width: 320px;
+    padding: 1rem;
+  }
+  .cert-preview-box {
+    height: 165px;
+  }
+  .roller-arrow {
+    width: 38px;
+    height: 38px;
+  }
+  .roller-arrow-prev {
+    left: 4px;
+  }
+  .roller-arrow-next {
+    right: 4px;
+  }
+}
+
+/* ============================================================
+   CREDENTIALS SECTION (BASE ELEMENTS)
    ============================================================ */
 .credentials-grid {
   display: grid;

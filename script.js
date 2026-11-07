@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   initSkillFilters();
   initTerminal();
+  initCertificateRoller();
 });
 
 // 1. Skill Filters
@@ -174,4 +175,203 @@ Alumni D3 Teknik Komputer, Politeknik Negeri Jember.`
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// 4. Interactive 3D Certificate Roller / Coverflow Slider
+function initCertificateRoller() {
+  const viewport = document.getElementById('cert-roller-viewport');
+  const track = document.getElementById('cert-roller-track');
+  const prevBtn = document.getElementById('roller-prev');
+  const nextBtn = document.getElementById('roller-next');
+  const dotsContainer = document.getElementById('roller-dots');
+
+  if (!viewport || !track) return;
+
+  const cards = Array.from(track.querySelectorAll('.roller-card'));
+  if (cards.length === 0) return;
+
+  let activeIndex = 0;
+  let isDragging = false;
+  let startX = 0;
+  let currentX = 0;
+
+  // Build dots
+  if (dotsContainer) {
+    dotsContainer.innerHTML = '';
+    cards.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = `roller-dot ${i === activeIndex ? 'active' : ''}`;
+      dot.setAttribute('aria-label', `Pilih Sertifikat ${i + 1}`);
+      dot.addEventListener('click', () => {
+        activeIndex = i;
+        updateRoller();
+      });
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('.roller-dot')) : [];
+
+  function updateRoller() {
+    const isMobile = window.innerWidth < 768;
+    const cardSpacing = isMobile ? Math.min(310, window.innerWidth * 0.78) : 340;
+
+    cards.forEach((card, i) => {
+      const diff = i - activeIndex;
+
+      if (diff === 0) {
+        // Active Center Card (Larger, bright, in front)
+        card.style.transform = `translate(-50%, -50%) translate3d(0, 0, 80px) scale(${isMobile ? 1.02 : 1.08})`;
+        card.style.zIndex = '25';
+        card.style.opacity = '1';
+        card.style.filter = 'none';
+        card.style.pointerEvents = 'auto';
+        card.classList.add('active');
+        card.style.borderColor = 'var(--accent-amber)';
+        card.style.boxShadow = '0 20px 40px rgba(0,0,0,0.7), 0 0 25px rgba(245, 158, 11, 0.25)';
+      } else if (Math.abs(diff) === 1) {
+        // Left & Right neighbor cards (scaled down, dimmer)
+        const xOffset = diff * cardSpacing;
+        card.style.transform = `translate(-50%, -50%) translate3d(${xOffset}px, 0, 0) scale(${isMobile ? 0.86 : 0.85})`;
+        card.style.zIndex = '15';
+        card.style.opacity = isMobile ? '0.5' : '0.65';
+        card.style.filter = 'brightness(0.65)';
+        card.style.pointerEvents = 'auto';
+        card.classList.remove('active');
+        card.style.borderColor = 'var(--border-subtle)';
+        card.style.boxShadow = '0 10px 24px rgba(0,0,0,0.5)';
+      } else if (Math.abs(diff) === 2) {
+        // Outer cards (smaller, background)
+        const xOffset = diff * (cardSpacing * 1.5);
+        card.style.transform = `translate(-50%, -50%) translate3d(${xOffset}px, 0, -60px) scale(0.72)`;
+        card.style.zIndex = '8';
+        card.style.opacity = isMobile ? '0' : '0.28';
+        card.style.filter = 'brightness(0.4)';
+        card.style.pointerEvents = isMobile ? 'none' : 'auto';
+        card.classList.remove('active');
+        card.style.borderColor = 'var(--border-subtle)';
+        card.style.boxShadow = 'none';
+      } else {
+        // Far hidden cards
+        const xOffset = Math.sign(diff) * (cardSpacing * 2.2);
+        card.style.transform = `translate(-50%, -50%) translate3d(${xOffset}px, 0, -120px) scale(0.6)`;
+        card.style.zIndex = '1';
+        card.style.opacity = '0';
+        card.style.filter = 'brightness(0.2)';
+        card.style.pointerEvents = 'none';
+        card.classList.remove('active');
+      }
+    });
+
+    // Update dots
+    dots.forEach((dot, idx) => {
+      if (idx === activeIndex) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    });
+  }
+
+  // Click on cards to bring to center
+  cards.forEach((card, idx) => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('a') || e.target.closest('button')) return;
+      if (activeIndex !== idx) {
+        activeIndex = idx;
+        updateRoller();
+      }
+    });
+  });
+
+  // Navigation Arrows
+  if (prevBtn) {
+    prevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      activeIndex = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
+      updateRoller();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      activeIndex = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
+      updateRoller();
+    });
+  }
+
+  // Touch Swipe
+  viewport.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    currentX = startX;
+    isDragging = true;
+  }, { passive: true });
+
+  viewport.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    currentX = e.touches[0].clientX;
+  }, { passive: true });
+
+  viewport.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    const delta = currentX - startX;
+    if (delta > 40) {
+      activeIndex = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
+      updateRoller();
+    } else if (delta < -40) {
+      activeIndex = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
+      updateRoller();
+    }
+  });
+
+  // Mouse Drag
+  viewport.addEventListener('mousedown', (e) => {
+    if (e.target.closest('a') || e.target.closest('button')) return;
+    isDragging = true;
+    startX = e.clientX;
+    currentX = startX;
+    viewport.classList.add('is-dragging');
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    currentX = e.clientX;
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    viewport.classList.remove('is-dragging');
+    const delta = currentX - startX;
+    if (delta > 45) {
+      activeIndex = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
+      updateRoller();
+    } else if (delta < -45) {
+      activeIndex = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
+      updateRoller();
+    }
+  });
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    const rect = viewport.getBoundingClientRect();
+    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+    if (!isVisible) return;
+
+    if (e.key === 'ArrowLeft') {
+      activeIndex = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
+      updateRoller();
+    } else if (e.key === 'ArrowRight') {
+      activeIndex = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
+      updateRoller();
+    }
+  });
+
+  // Window resize
+  window.addEventListener('resize', updateRoller);
+
+  // Initial draw
+  updateRoller();
 }
