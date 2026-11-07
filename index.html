@@ -457,15 +457,16 @@
 
         <div class="roller-wrapper">
           <div class="roller-instruction">
-            <span class="roller-icon">⇄</span> Geser / Drag untuk meninjau sertifikat • Klik kartu untuk memusatkan
+            <span class="roller-icon">⇄</span> Scroll mouse / geser ke kanan &amp; kiri • Kartu tengah membesar mengikuti rotasi cycle
           </div>
 
-          <div class="roller-viewport" id="cert-roller-viewport">
+          <div class="roller-viewport-container">
             <button class="roller-arrow roller-arrow-prev" id="roller-prev" aria-label="Sertifikat Sebelumnya">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
 
-            <div class="roller-track" id="cert-roller-track">
+            <div class="roller-viewport" id="cert-roller-viewport">
+              <div class="roller-track" id="cert-roller-track">
               <!-- Card 0: CCEP -->
               <div class="roller-card" data-index="0">
                 <a href="certificates/certified_cybersecurity.pdf" target="_blank" class="cert-preview-box" title="Buka Dokumen PDF Penuh">
@@ -601,6 +602,7 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
           </div>
+        </div>
 
           <div class="roller-dots" id="roller-dots"></div>
         </div>

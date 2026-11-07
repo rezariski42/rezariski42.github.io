@@ -177,7 +177,7 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// 4. Interactive 3D Certificate Roller / Coverflow Slider
+// 4. Interactive 3D Certificate Roller / Coverflow Slider (Horizontal Cycle)
 function initCertificateRoller() {
   const viewport = document.getElementById('cert-roller-viewport');
   const track = document.getElementById('cert-roller-track');
@@ -191,9 +191,11 @@ function initCertificateRoller() {
   if (cards.length === 0) return;
 
   let activeIndex = 0;
+  let isTicking = false;
   let isDragging = false;
   let startX = 0;
-  let currentX = 0;
+  let scrollStart = 0;
+  let hasDragged = false;
 
   // Build dots
   if (dotsContainer) {
@@ -203,8 +205,7 @@ function initCertificateRoller() {
       dot.className = `roller-dot ${i === activeIndex ? 'active' : ''}`;
       dot.setAttribute('aria-label', `Pilih Sertifikat ${i + 1}`);
       dot.addEventListener('click', () => {
-        activeIndex = i;
-        updateRoller();
+        scrollToCard(i);
       });
       dotsContainer.appendChild(dot);
     });
@@ -212,147 +213,169 @@ function initCertificateRoller() {
 
   const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('.roller-dot')) : [];
 
-  function updateRoller() {
-    const isMobile = window.innerWidth < 768;
-    const cardSpacing = isMobile ? Math.min(310, window.innerWidth * 0.78) : 340;
+  function updateCardTransforms() {
+    isTicking = false;
+    const viewportCenter = viewport.scrollLeft + (viewport.clientWidth / 2);
+    let closestIndex = 0;
+    let minDistance = Infinity;
 
     cards.forEach((card, i) => {
-      const diff = i - activeIndex;
+      const cardCenter = card.offsetLeft + (card.clientWidth / 2);
+      const distance = cardCenter - viewportCenter;
+      const absDist = Math.abs(distance);
+      const normalized = distance / (card.clientWidth * 0.9);
 
-      if (diff === 0) {
-        // Active Center Card (Larger, bright, in front)
-        card.style.transform = `translate(-50%, -50%) translate3d(0, 0, 80px) scale(${isMobile ? 1.02 : 1.08})`;
-        card.style.zIndex = '25';
-        card.style.opacity = '1';
-        card.style.filter = 'none';
-        card.style.pointerEvents = 'auto';
+      if (absDist < minDistance) {
+        minDistance = absDist;
+        closestIndex = i;
+      }
+
+      // 3D Cycle curve calculation:
+      // Center card is big (scale: 1.12), left/right cards are smaller (scale: ~0.8)
+      const scale = Math.max(0.78, 1.12 - Math.min(Math.abs(normalized) * 0.34, 0.34));
+      
+      // Cycle curvature (curves like a carousel drum facing the viewer)
+      const rotateY = Math.max(-22, Math.min(22, normalized * -18));
+      
+      // Depth perspective (center comes forward, sides push back)
+      const translateZ = Math.max(-80, 50 - Math.abs(normalized) * 90);
+      
+      // Fading for side cards
+      const opacity = Math.max(0.42, 1 - Math.min(Math.abs(normalized) * 0.58, 0.58));
+
+      card.style.transform = `scale(${scale}) rotateY(${rotateY}deg) translateZ(${translateZ}px)`;
+      card.style.opacity = opacity;
+      card.style.zIndex = Math.round(50 - Math.min(absDist / 8, 45));
+
+      if (Math.abs(normalized) < 0.35) {
         card.classList.add('active');
         card.style.borderColor = 'var(--accent-amber)';
-        card.style.boxShadow = '0 20px 40px rgba(0,0,0,0.7), 0 0 25px rgba(245, 158, 11, 0.25)';
-      } else if (Math.abs(diff) === 1) {
-        // Left & Right neighbor cards (scaled down, dimmer)
-        const xOffset = diff * cardSpacing;
-        card.style.transform = `translate(-50%, -50%) translate3d(${xOffset}px, 0, 0) scale(${isMobile ? 0.86 : 0.85})`;
-        card.style.zIndex = '15';
-        card.style.opacity = isMobile ? '0.5' : '0.65';
-        card.style.filter = 'brightness(0.65)';
-        card.style.pointerEvents = 'auto';
+        card.style.boxShadow = '0 20px 45px rgba(0, 0, 0, 0.8), 0 0 28px rgba(245, 158, 11, 0.28)';
+      } else {
         card.classList.remove('active');
         card.style.borderColor = 'var(--border-subtle)';
-        card.style.boxShadow = '0 10px 24px rgba(0,0,0,0.5)';
-      } else if (Math.abs(diff) === 2) {
-        // Outer cards (smaller, background)
-        const xOffset = diff * (cardSpacing * 1.5);
-        card.style.transform = `translate(-50%, -50%) translate3d(${xOffset}px, 0, -60px) scale(0.72)`;
-        card.style.zIndex = '8';
-        card.style.opacity = isMobile ? '0' : '0.28';
-        card.style.filter = 'brightness(0.4)';
-        card.style.pointerEvents = isMobile ? 'none' : 'auto';
-        card.classList.remove('active');
-        card.style.borderColor = 'var(--border-subtle)';
-        card.style.boxShadow = 'none';
-      } else {
-        // Far hidden cards
-        const xOffset = Math.sign(diff) * (cardSpacing * 2.2);
-        card.style.transform = `translate(-50%, -50%) translate3d(${xOffset}px, 0, -120px) scale(0.6)`;
-        card.style.zIndex = '1';
-        card.style.opacity = '0';
-        card.style.filter = 'brightness(0.2)';
-        card.style.pointerEvents = 'none';
-        card.classList.remove('active');
+        card.style.boxShadow = '0 10px 24px rgba(0, 0, 0, 0.45)';
       }
     });
 
-    // Update dots
-    dots.forEach((dot, idx) => {
-      if (idx === activeIndex) {
-        dot.classList.add('active');
-      } else {
-        dot.classList.remove('active');
-      }
-    });
-  }
-
-  // Click on cards to bring to center
-  cards.forEach((card, idx) => {
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('a') || e.target.closest('button')) return;
-      if (activeIndex !== idx) {
-        activeIndex = idx;
-        updateRoller();
-      }
-    });
-  });
-
-  // Navigation Arrows
-  if (prevBtn) {
-    prevBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      activeIndex = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
-      updateRoller();
-    });
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      activeIndex = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
-      updateRoller();
-    });
-  }
-
-  // Touch Swipe
-  viewport.addEventListener('touchstart', (e) => {
-    startX = e.touches[0].clientX;
-    currentX = startX;
-    isDragging = true;
-  }, { passive: true });
-
-  viewport.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    currentX = e.touches[0].clientX;
-  }, { passive: true });
-
-  viewport.addEventListener('touchend', () => {
-    if (!isDragging) return;
-    isDragging = false;
-    const delta = currentX - startX;
-    if (delta > 40) {
-      activeIndex = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
-      updateRoller();
-    } else if (delta < -40) {
-      activeIndex = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
-      updateRoller();
+    if (activeIndex !== closestIndex) {
+      activeIndex = closestIndex;
+      dots.forEach((dot, idx) => {
+        if (idx === activeIndex) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
     }
-  });
+  }
 
-  // Mouse Drag
+  function onScroll() {
+    if (!isTicking) {
+      requestAnimationFrame(updateCardTransforms);
+      isTicking = true;
+    }
+  }
+
+  viewport.addEventListener('scroll', onScroll, { passive: true });
+
+  function scrollToCard(index, smooth = true) {
+    if (index < 0) index = 0;
+    if (index >= cards.length) index = cards.length - 1;
+    const card = cards[index];
+    if (!card) return;
+    const targetScroll = card.offsetLeft - (viewport.clientWidth / 2) + (card.clientWidth / 2);
+    viewport.scrollTo({
+      left: targetScroll,
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+  }
+
+  function snapToClosest() {
+    const viewportCenter = viewport.scrollLeft + (viewport.clientWidth / 2);
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    cards.forEach((card, i) => {
+      const cardCenter = card.offsetLeft + (card.clientWidth / 2);
+      const dist = Math.abs(cardCenter - viewportCenter);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIndex = i;
+      }
+    });
+
+    scrollToCard(closestIndex, true);
+  }
+
+  // Intercept vertical mouse wheel and translate directly to horizontal cycling
+  viewport.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+      const canScrollRight = e.deltaY > 0 && viewport.scrollLeft < maxScroll - 4;
+      const canScrollLeft = e.deltaY < 0 && viewport.scrollLeft > 4;
+
+      if (canScrollRight || canScrollLeft) {
+        e.preventDefault();
+        viewport.scrollLeft += e.deltaY * 1.15;
+      }
+    }
+  }, { passive: false });
+
+  // Mouse Drag to cycle
   viewport.addEventListener('mousedown', (e) => {
     if (e.target.closest('a') || e.target.closest('button')) return;
     isDragging = true;
-    startX = e.clientX;
-    currentX = startX;
+    hasDragged = false;
+    startX = e.pageX - viewport.offsetLeft;
+    scrollStart = viewport.scrollLeft;
     viewport.classList.add('is-dragging');
   });
 
   window.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
-    currentX = e.clientX;
+    const x = e.pageX - viewport.offsetLeft;
+    const walk = (x - startX) * 1.35;
+    if (Math.abs(walk) > 4) {
+      hasDragged = true;
+    }
+    viewport.scrollLeft = scrollStart - walk;
   });
 
   window.addEventListener('mouseup', () => {
     if (!isDragging) return;
     isDragging = false;
     viewport.classList.remove('is-dragging');
-    const delta = currentX - startX;
-    if (delta > 45) {
-      activeIndex = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
-      updateRoller();
-    } else if (delta < -45) {
-      activeIndex = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
-      updateRoller();
+    if (hasDragged) {
+      snapToClosest();
     }
   });
+
+  // Click card to scroll to center
+  cards.forEach((card, idx) => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('a') || e.target.closest('button')) return;
+      if (activeIndex !== idx) {
+        e.preventDefault();
+        scrollToCard(idx);
+      }
+    });
+  });
+
+  // Prev / Next buttons
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      const target = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
+      scrollToCard(target);
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      const target = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
+      scrollToCard(target);
+    });
+  }
 
   // Keyboard navigation
   window.addEventListener('keydown', (e) => {
@@ -361,17 +384,23 @@ function initCertificateRoller() {
     if (!isVisible) return;
 
     if (e.key === 'ArrowLeft') {
-      activeIndex = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
-      updateRoller();
+      const target = (activeIndex > 0) ? activeIndex - 1 : cards.length - 1;
+      scrollToCard(target);
     } else if (e.key === 'ArrowRight') {
-      activeIndex = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
-      updateRoller();
+      const target = (activeIndex < cards.length - 1) ? activeIndex + 1 : 0;
+      scrollToCard(target);
     }
   });
 
-  // Window resize
-  window.addEventListener('resize', updateRoller);
+  // Window resize & orientation change
+  window.addEventListener('resize', () => {
+    scrollToCard(activeIndex, false);
+    updateCardTransforms();
+  });
 
-  // Initial draw
-  updateRoller();
+  // Initial center position on load
+  setTimeout(() => {
+    scrollToCard(0, false);
+    updateCardTransforms();
+  }, 100);
 }

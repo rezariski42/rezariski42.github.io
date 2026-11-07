@@ -726,46 +726,63 @@ body {
   font-size: 0.9rem;
 }
 
-.roller-viewport {
+.roller-viewport-container {
   position: relative;
   width: 100%;
-  height: 540px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  perspective: 1200px;
-  overflow: hidden;
+}
+
+.roller-viewport {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  perspective: 1400px;
+  perspective-origin: center center;
+  padding: 3rem 0;
   cursor: grab;
+}
+
+.roller-viewport::-webkit-scrollbar {
+  display: none;
 }
 
 .roller-viewport.is-dragging {
   cursor: grabbing;
+  scroll-snap-type: none;
 }
 
 .roller-track {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0 calc(50% - 190px);
   transform-style: preserve-3d;
+  width: max-content;
 }
 
 .roller-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 390px;
+  flex: 0 0 380px;
+  width: 380px;
   max-width: 86vw;
+  scroll-snap-align: center;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 1.25rem;
   box-sizing: border-box;
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.45s ease,
-              border-color 0.3s ease,
-              box-shadow 0.45s ease,
-              filter 0.45s ease;
+  transform-origin: center center;
+  transition: transform 0.12s ease-out,
+              opacity 0.15s ease-out,
+              filter 0.15s ease-out,
+              border-color 0.25s ease,
+              box-shadow 0.25s ease;
   will-change: transform, opacity, filter;
+  cursor: pointer;
 }
 
 .roller-card.active {
@@ -984,10 +1001,16 @@ body {
 
 @media (max-width: 768px) {
   .roller-viewport {
-    height: 520px;
+    padding: 2rem 0;
+  }
+  .roller-track {
+    gap: 1.25rem;
+    padding: 0 calc(50% - min(43vw, 160px));
   }
   .roller-card {
+    flex: 0 0 320px;
     width: 320px;
+    max-width: 86vw;
     padding: 1rem;
   }
   .cert-preview-box {
@@ -998,10 +1021,10 @@ body {
     height: 38px;
   }
   .roller-arrow-prev {
-    left: 4px;
+    left: 2px;
   }
   .roller-arrow-next {
-    right: 4px;
+    right: 2px;
   }
 }
 
