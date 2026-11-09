@@ -116,7 +116,7 @@ function initTerminal() {
   • Email    : rezariski42@gmail.com
   • WhatsApp : +62 851 1718 1529
   • LinkedIn : https://id.linkedin.com/in/muhammad-yusuf-reyzha-rizky-alatas-account-executive-my-republic-5777aa157
-  • GitHub   : https://github.com/rezariski
+  • GitHub   : https://github.com/rezariski4242
   • Domisili : Jember, Jawa Timur, Indonesia`,
 
     whoami: `Muhammad Yusuf Reyzha Rizky Alatas (@rezariski)
