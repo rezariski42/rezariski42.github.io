@@ -20,7 +20,7 @@ git init
 git add .
 git commit -m "feat: initial release of anti-slop technical portfolio"
 git branch -M main
-git remote add origin https://github.com/rezariski4242/rezariski42.github.io.git
+git remote add origin https://github.com/rezariski42/rezariski42.github.io.git
 git push -u origin main
 ```
 3. Your site will automatically go live at:
